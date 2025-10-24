@@ -6,7 +6,7 @@
 class Paddle{
     private:
         Rectangle rect;
-        int speed = 10;
+        int speed = 800;
 
     public:
         Paddle(float x, float y){
@@ -22,16 +22,18 @@ class Paddle{
             this->rect.width = width;
             this->rect.height = height;
         }
-
+        Rectangle getRect(){
+            return rect;
+        }
         void moveUp(){
             if(rect.y > 0){
-                rect.y -= speed;
+                rect.y -= GetFrameTime() * speed;
             }
         }
 
         void moveDown(){
             if(rect.y < (600 - rect.height)){
-                rect.y += speed;
+                rect.y += GetFrameTime() * speed;
             }
         }
 
@@ -42,59 +44,62 @@ class Paddle{
 
 class Ball{
     private:
-        Vector2 speed;
-        int radius = 10;
-        Vector2 position;
-        Vector2 destination;
+        float radius = 10;
+        float dt = 1/60;
+        int speed = 250;
+        Vector2 pos;
+        Vector2 direction;
 
     public:
         Ball(){
-            position.x = 450;
-            position.y = 300;
+            pos.x = 450;
+            pos.y = 300;
+            direction.x = 1;
+            direction.y = 1;
         }
-        Ball(int par_x, int par_y, int par_radius){
-            position.x = par_x;
-            position.y = par_y;
-            radius = par_radius;
+        Vector2 getPos(){
+            return pos;
         }
-        void calcUnitVector(){
-            int height = destination.y - position.y;
-            int base = destination.x - destination.x;
-            base = base * base;
-            height = height * height;
-            int hyp = base * height;
-            hyp = sqrt(hyp);
-
-            speed.x = (destination.x - position.x) / hyp;
-            speed.y = (destination.y - position.y) / hyp;
+        float getRadius(){
+            return radius;
         }
-        void calculateDestination(bool horizDirection,bool vertDirection){
-            if(horizDirection == true){
-                destination.x = GetRandomValue(900, 920);
+        void toggleXDirection(){
+            if(direction.x > 0){
+                direction.x = -1;
             }
             else{
-                destination.x = GetRandomValue(20, -20);
+                direction.x = 1;
             }
-
-            if(vertDirection == true){
-                destination.y = GetRandomValue(600, 620);
+        }
+        void toggleYDirection(){
+            if(direction.y > 0){
+                direction.y = -1;
             }
             else{
-                destination.y = GetRandomValue(0, -0);
+                direction.y = 1;
             }
         }
-        void reset(bool hDirection, bool vDirection){
-          position.x = 450;
-          position.y = 300;
-          calculateDestination(hDirection,vDirection);
-          calcUnitVector();
+        void borderDetection(){
+            if(pos.x >= 900){
+                toggleXDirection();
+            }
+            else if(pos.x <= 0){
+                toggleXDirection();
+            }
+
+            if(pos.y >= 600){
+                toggleYDirection();
+            }
+            else if(pos.y <= 0){
+                toggleYDirection();
+            }
         }
-        void update(){
-            position.x += speed.x;
-            position.y += speed.y;
+        void move(){
+            pos.x += GetFrameTime() * speed * direction.x;
+            pos.y += GetFrameTime() * speed * direction.y;
         }
         void display(){
-            DrawCircle(position.x, position.y, radius, WHITE);
+            DrawCircle(pos.x, pos.y, radius, WHITE);
         }
 };
 
@@ -116,6 +121,7 @@ int main(){
 
     while(WindowShouldClose() == false){
 
+        // Process user input
         if(IsKeyDown(KEY_UP)){
             player.moveUp();
         }
@@ -123,6 +129,16 @@ int main(){
             player.moveDown();
         }
 
+        // update world
+        ball.borderDetection();
+        ball.move();
+        if((CheckCollisionCircleRec(ball.getPos(),ball.getRadius(),player.getRect())) || (CheckCollisionCircleRec(ball.getPos(),ball.getRadius(),enemy.getRect()))){
+            ball.toggleXDirection();
+            ball.toggleYDirection();
+        }
+
+
+        // Draw updated world
         BeginDrawing();
         
             ClearBackground(GREEN);
