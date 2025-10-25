@@ -7,46 +7,59 @@ class Paddle{
     private:
         Rectangle rect;
         int speed = 800;
+        int intel = 0;
+        int diff = 4;
+        float height = 150;
+        float width = 30;
 
     public:
         Paddle(float x, float y){
             this->rect.x = x;
             this->rect.y = y;
-            this->rect.width = 20;
-            this->rect.height = 100;
-        }
-
-        Paddle(float x, float y, float width, float height){
-            this->rect.x = x;
-            this->rect.y = y;
-            this->rect.width = width;
-            this->rect.height = height;
+            rect.width = width;
+            rect.height = height;
         }
         Rectangle getRect(){
             return rect;
+        }
+        void increaseDificulty(){
+            diff--;
         }
         void moveUp(){
             if(rect.y > 0){
                 rect.y -= GetFrameTime() * speed;
             }
         }
-
         void moveDown(){
             if(rect.y < (600 - rect.height)){
                 rect.y += GetFrameTime() * speed;
             }
         }
-
+        void followBall(Vector2 ball){
+            if(intel > diff){
+                if((rect.y > ball.y)){
+                    moveUp();
+                }
+                if((rect.y < ball.y)){
+                    moveDown();
+                }
+                intel = 0;
+            }else{
+             intel += GetRandomValue(1,100);
+            }
+        }
         void display(){
-            DrawRectangleRec(this->rect, WHITE);
+            DrawRectangleRec(rect, WHITE);
         }
 };
 
 class Ball{
     private:
-        float radius = 10;
+        float radius = 20.0f;
         float dt = 1/60;
-        int speed = 250;
+        int speed = 300;
+        int playerScore = 0;
+        int enemyScore = 0;
         Vector2 pos;
         Vector2 direction;
 
@@ -59,6 +72,12 @@ class Ball{
         }
         Vector2 getPos(){
             return pos;
+        }
+        int getPlayerScore(){
+            return playerScore;
+        }
+        int getEnemyScore(){
+            return enemyScore;
         }
         float getRadius(){
             return radius;
@@ -81,10 +100,14 @@ class Ball{
         }
         void borderDetection(){
             if(pos.x >= 900){
-                toggleXDirection();
+                // Increase your score
+                playerScore++;
+                resetPosition();
             }
             else if(pos.x <= 0){
-                toggleXDirection();
+                // Increase enemy score
+                enemyScore++;
+                resetPosition();
             }
 
             if(pos.y >= 600){
@@ -93,6 +116,16 @@ class Ball{
             else if(pos.y <= 0){
                 toggleYDirection();
             }
+        }
+        void resetScore(){
+            playerScore = 0;
+            enemyScore = 0;
+        }
+        void resetPosition(){
+            pos.x = 450;
+            pos.y = 300;
+            direction.x *= -1;
+            direction.y *= -1;
         }
         void move(){
             pos.x += GetFrameTime() * speed * direction.x;
@@ -113,9 +146,9 @@ int main(){
 
 
     //Player
-    Paddle player = Paddle(20,20);
+    Paddle player = Paddle(20,SCREEN_HEIGHT / 2);
     //Enemy
-    Paddle enemy = Paddle(860,480);
+    Paddle enemy = Paddle(860,SCREEN_HEIGHT / 2);
     //Ball
     Ball ball = Ball();
 
@@ -130,17 +163,28 @@ int main(){
         }
 
         // update world
+            // Ball movement
         ball.borderDetection();
         ball.move();
+            // Paddle collision
         if((CheckCollisionCircleRec(ball.getPos(),ball.getRadius(),player.getRect())) || (CheckCollisionCircleRec(ball.getPos(),ball.getRadius(),enemy.getRect()))){
             ball.toggleXDirection();
             ball.toggleYDirection();
         }
 
+            // Enemy AI
+        enemy.followBall(ball.getPos());
+
+            // Score
+        int scoreDiff = std::abs(ball.getPlayerScore() - ball.getEnemyScore());
+        if(scoreDiff > 3){
+            enemy.increaseDificulty();
+            ball.resetScore();
+            ball.resetPosition();
+        }
 
         // Draw updated world
         BeginDrawing();
-        
             ClearBackground(GREEN);
             player.display();
             enemy.display();
