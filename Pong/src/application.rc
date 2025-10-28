@@ -10,12 +10,12 @@ BEGIN
     BLOCK "040904E4"    // English US
     BEGIN
       //VALUE "CompanyName", "raylib technologies"
-      VALUE "FileDescription", "A cool game made with raylib (www.raylib.com)"
+      VALUE "FileDescription", "Pong made with raylib (www.raylib.com)"
       VALUE "FileVersion", "1.0.0"
-      VALUE "InternalName", "cool game"
+      VALUE "InternalName", "Pong"
       VALUE "LegalCopyright", "(c) 2025 YOUR NAME"
       //VALUE "OriginalFilename", "raylib_app"
-      VALUE "ProductName", "A cool game"
+      VALUE "ProductName", "Pong"
       VALUE "ProductVersion", "1.0.0"
     END
   END

@@ -134,6 +134,10 @@ class Ball{
         void display(){
             DrawCircle(pos.x, pos.y, radius, WHITE);
         }
+        void displayScore(){
+            DrawText(TextFormat("%d",playerScore), 400, 10, 100, WHITE);
+            DrawText(TextFormat("%d",enemyScore), 480, 10, 100, WHITE);
+        }
 };
 
 
@@ -189,7 +193,7 @@ int main(){
             player.display();
             enemy.display();
             ball.display();
-
+            ball.displayScore();
         EndDrawing();
     }
 
